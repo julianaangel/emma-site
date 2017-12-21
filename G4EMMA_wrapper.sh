@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #server vm (set the geant4 and root env vars)
-source /opt/emma/root/v5.34.36/bin/mythisroot.sh
-source /opt/emma/geant4.9.6-install/bin/mygeant4.sh 
+source $THISROOT_PATH
+source $THISGEANT4_PATH
 
 # $1 is the MainDir
 # $2 is the UserDir

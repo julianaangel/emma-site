@@ -6,9 +6,8 @@
 
 # $1 is G4EMMA userdir
 
-# This should have already been sourced on the server but I'll 
-# leave it here in case it's needed
-source /opt/emma/root/v5.34.36/bin/mythisroot.sh
+# I'm not entirely sure this is needed but I'll leave it here just in case
+source $THISROOT_PATH
 
 # path to rootanalysis folder
 # the macro includes a bunch of other files: it'll work as long as 
