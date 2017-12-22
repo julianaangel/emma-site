@@ -310,11 +310,18 @@ class MWPCForm(forms.Form):
     mwpc_temp = forms.DecimalField(required=True, label="T", help_text="\u00B0C *required", validators=[MinValueValidator(-273.15)])
 
 
+class IonChamberChoiceForm(forms.Form):
+    name = "ion_chamber_choice_form"
+    ION_CHAMBER_CHOICES = (
+        (0, "Out"),
+        (1, "In")
+    )
+    ion_chamber_inserted = forms.ChoiceField(required=True, label="Ion chamber", choices=ION_CHAMBER_CHOICES, initial=0)
+
 class IonChamberForm(forms.Form):
     name = "ion_chamber_form"
-    ion_chamber_guide = forms.CharField(widget=HeaderWidget(attrs={'class': 'form-header'}), initial='', required=False, label='Ion Chamber', label_suffix="")
-    ion_chamber_pressure = forms.DecimalField(required=True, label="p", help_text="Torr *required", validators=[MinValueValidator(0)])
-    ion_chamber_temp = forms.DecimalField(required=False, label="T", help_text="\u00B0C", validators=[MinValueValidator(-273.15)], initial=18)
+    ion_chamber_pressure = forms.DecimalField(required=False, label="p", help_text="Torr", validators=[MinValueValidator(0)])
+    ion_chamber_temp = forms.DecimalField(required=False, label="T", help_text="\u00B0C", validators=[MinValueValidator(-273.15)])
 
 
 

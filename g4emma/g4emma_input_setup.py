@@ -142,9 +142,9 @@ def merge_with_defaults(form_dict):
                             center_traj_charge_state = form_dict['beam_charge_state'],
                             center_traj_kinetic_e = form_dict['beam_kinetic_e'],
                             #--------
-                            ion_chamber_inserted = "IN",
+                            ion_chamber_inserted = "OUT",
                             ion_chamber_pressure = 0,
-                            ion_chamber_temp = 18, #18 suggested as default by Matt
+                            ion_chamber_temp = 0,
                             mwpc_inserted = "IN", #this will always be in
                             rxn_z1_beam = form_dict['beam_proton_num'],
                             rxn_a1 = form_dict['beam_nucleon_num'],
@@ -199,7 +199,7 @@ def merge_with_defaults(form_dict):
 
 
         # We need to apply a correction to change some 0/1 to OUT/IN or NO/YES
-        fields_to_correct = ["target_inserted", "degrader_1_inserted", "degrader_2_inserted"]
+        fields_to_correct = ["ion_chamber_inserted", "target_inserted", "degrader_1_inserted", "degrader_2_inserted"]
 
         for field in fields_to_correct:
             if (int(default_vals[field])):
