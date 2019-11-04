@@ -12,7 +12,9 @@
   <link rel="stylesheet" href="{% static 'g4emma/style.css' %}" type="text/css">
   {% block js_links %}
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.6/umd/popper.min.js"></script>
   <script src="{% static 'g4emma/anchor_navigation.js' %}"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js"></script>
   {% endblock %}
 </head>
 
@@ -39,9 +41,17 @@
       href="{% block nav_maunal_url %}{% url 'manual' %}{% endblock %}">Manual</a>
       <a class="{% block nav_simulation_class %}nav-pill{% endblock %}"
       href="{% block nav_simulation_url %}{% url 'simulation' %}{% endblock %}">Simulation</a>
+      <div class="dropdown">
+      <button class="{% block nav_drpbtn_class %}dropbtn{% endblock %}">
       <a class="{% block nav_tools_class %}nav-pill{% endblock %}"
       href="{% block nav_tools_url %}{% url 'tools' %}{% endblock %}">Tools</a>
-      <!-- TODO: Add a dropdown for specific tools -->
+      </button>
+        <div class="dropdown-content">
+	  <a href="{% block nav_rigidity_url %}{% url 'rigidity' %}{% endblock %}" style="text-decoration: none">Rigidity</a>
+	  <a href="{% block nav_charge_state_url %}{% url 'charge_state' %}{% endblock %}" style="text-decoration: none">Charge State</a>
+	  <a href="{% block nav_energy_loss_url %}{% url 'energy_loss' %}{% endblock %}" style="text-decoration: none">Energy Loss</a>
+        </div>
+      </div>
       <a class="{% block nav_admin_class %}nav-pill{% endblock %}"
       href="{% block nav_admin_url %}{% url 'admin:index' %}{% endblock %}">Admin</a>
     </nav>

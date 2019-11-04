@@ -1,0 +1,68 @@
+{% extends "g4emma/base.html" %}
+
+<!-- Title -->
+{% block title %}{{ block.super }} - Charge State{% endblock %}
+
+<!-- Navigation -->
+{% block nav_tools_class %}nav-pill-active{% endblock %}
+{% block nav_drpbtn_class %}dropbtn-active{% endblock %}
+{% block nav_charge_state_url %}#{% endblock %}
+
+<!-- Main Content -->
+{% block main_content %}
+
+	{% if image %}
+		
+		<img src="{{ image }}" alt="Charge State Plots" class="floatRight">
+
+	{% endif %} 
+
+	<h2 id="submit_msg">Charge State Calculation</h2>
+	<br>
+
+	{% if beam_form.errors %}
+		<p style="color: red;">
+			Please correct the error{{ beam_form.errors|pluralize }} below.
+		</p>
+	{% endif %}
+
+	{% if target_form.errors %}
+		<p style="color: red;">
+			Please correct the error{{ target_form.errors|pluralize }} below.
+		</p>
+	{% endif %}
+
+	{% if invalid %}
+		<p style="color: red;">
+			Could not find isotope data: Are you sure those are the correct A and Z values ?
+		</p>
+	{% endif %}
+
+
+	<form id="cs_form" action="" method="post" novalidate>
+    		<ul>
+			<p> Incident Ion Properties: </p>
+      			<div class="{{beam_form.name}}">
+         		{{ beam_form.as_ul }}
+        		</div>
+			<br>
+			<p> Target Properies: </p>
+      			<div class="{{target_form.name}}">
+         		{{ target_form.as_ul }}
+        		</div>
+    		</ul>
+    		{% csrf_token %}
+    		<input type="submit" value="Submit">
+ 	</form>
+
+	{% if image %}
+		<br style="line-height:3;"><br>
+		<p> Nikolaev:&nbsp;&nbsp; &mu; = {{ mu_ND }} , &sigma; = {{ sig_ND }}  </p> 
+		<p> Shima:&nbsp;&nbsp; &mu; = {{ mu_Shima }} , &sigma; = {{ sig_Shima }}  </p>
+		<p> Schiwietz:&nbsp;&nbsp; &mu; = {{ mu_Schiw }} , &sigma; = {{ sig_Schiw }}  </p>
+		<a href="{% url 'charge_state_results' %}">Data Table</a>
+		<br style="line-height:12;"><br> <!-- this is an ugly way of getting the footer below the plot, but it'll do -->
+	{% endif %}
+
+{% endblock %}
+

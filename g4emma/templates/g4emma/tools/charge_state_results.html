@@ -1,0 +1,29 @@
+<html>
+<body>
+
+<style>
+td {
+  text-align: center;
+  vertical-align: middle;
+}
+</style>
+
+<table style="width:80%">
+  <tr>
+    <th>Charge State</th>
+    <th>Percentage (Nikolaev)</th>
+    <th>Percentage (Shima)</th>
+    <th>Percentage (Schiwietz)</th>
+  </tr>
+  {% for x,y_ND,y_Sh,y_Sc in cs_data %}
+  <tr>
+    <td>{{ x }}</td>
+    <td>{{ y_ND }}</td>
+    <td>{{ y_Sh }}</td>
+    <td>{{ y_Sc }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+</body>
+</html>

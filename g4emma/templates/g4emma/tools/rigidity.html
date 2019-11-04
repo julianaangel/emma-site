@@ -1,0 +1,49 @@
+{% extends "g4emma/base.html" %}
+
+<!-- Title -->
+{% block title %}{{ block.super }} - Rigidity{% endblock %}
+
+<!-- Navigation -->
+{% block nav_tools_class %}nav-pill-active{% endblock %}
+{% block nav_drpbtn_class %}dropbtn-active{% endblock %}
+{% block nav_rigidity_url %}#{% endblock %}
+
+<!-- Main Content -->
+{% block main_content %}
+
+	<h2 id="submit_msg">Rigidity Calculation</h2>
+	<br>
+
+	{% if form.errors %}
+		<p style="color: red;">
+			Please correct the error{{ form.errors|pluralize }} below.
+		</p>
+	{% endif %}
+	
+	<form id="rig_form" action="" method="post">
+    		<ul>
+      			<div class="{{form.name}}">
+         		{{ form.as_ul }}
+        		</div>
+    		</ul>
+    		{% csrf_token %}
+    		<input type="submit" value="Submit">
+ 	</form>
+
+	{% if electric_rig > 0.0 and magnetic_rig > 0.0 %}
+		<br>
+		<br>
+		<ul>
+			<p> Electric Rigidity (R<sub>E</sub>) = {{electric_rig}} MV</p>
+			{% if electric_rig > 25.0 %}
+				<p style="color: red;"> Note: The maximum electric rigidity that EMMA can handle is 25 MV. </p>
+			{% endif %}
+			<p> Magnetic Rigidity (R<sub>B</sub>) = {{magnetic_rig}} Tm</p>
+			{% if magnetic_rig > 1.0 %}
+				<p style="color: red;"> Note: The maximum magnetic rigidity that EMMA can handle is 1 Tm. </p>
+			{% endif %}
+		</ul>
+	{% endif %}
+
+{% endblock %}
+

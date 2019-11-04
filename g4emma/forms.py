@@ -64,7 +64,9 @@ MAX_PROTON_NUM = 300
 MAX_NUCLEON_NUM = 500
 MIN_THICKNESS = 0.000004
 MAX_EVENTS = 5000
-
+MIN_CS_BEAM_Z = 8 # charge state tool constant
+MAX_TARGET_Z = 79 # charge state tool constant
+MIN_TARGET_Z = 4  # charge state tool constant
 # Note: I use 0 and 1 instead of booleans to allow the JS to use them easily
 
 class AlphaSourceChoiceForm(forms.Form):
@@ -323,11 +325,90 @@ class IonChamberForm(forms.Form):
     ion_chamber_pressure = forms.DecimalField(required=False, label="p", help_text="Torr", validators=[MinValueValidator(0)])
     ion_chamber_temp = forms.DecimalField(required=False, label="T", help_text="\u00B0C", validators=[MinValueValidator(-273.15)])
 
+#########################################
+# Rigidity Tool Form
+########################################
+
+class RigidityForm(forms.Form):
+    name = "rigidity_form"
+    rig_kinetic_e = forms.DecimalField(required=True, label="E", help_text="MeV (Kinetic energy) *required",validators=[MinValueValidator(0)])
+    rig_nucleon_num = forms.DecimalField(required=True, label="A", help_text="amu (Mass) *required",validators=[MaxValueValidator(MAX_NUCLEON_NUM), MinValueValidator(1)])
+    rig_charge_state = forms.IntegerField(required=True, label="Q", help_text="(Charge state) *required")
+
+
+##########################################
+# Charge State Form
+##########################################
+
+class ChargeStateIonForm(forms.Form):
+    name = "charge_state_ion_form"
+    cs_kinetic_e = forms.DecimalField(required=True, label="E", help_text="MeV (Kinetic energy) *required", validators=[MinValueValidator(0)])
+    cs_proton_num = forms.IntegerField(required=True, label="Z", help_text="(Proton number) *required", validators=[MaxValueValidator(MAX_PROTON_NUM), MinValueValidator(MIN_CS_BEAM_Z)])
+    cs_nucleon_num = forms.DecimalField(required=True, label="A", help_text="(Nucleon number) *required", validators=[MaxValueValidator(MAX_NUCLEON_NUM), MinValueValidator(1)])
+
+    def clean(self):
+        cd = super(ChargeStateIonForm, self).clean()
+        cs_kinetic_e = cd.get('cs_kinetic_e', None)
+        cs_nucleon_num = cd.get('cs_nucleon_num', None)
+        if not cs_nucleon_num == int(cs_nucleon_num):
+            raise forms.ValidationError("Assertion Error, nucleon number must be integer")
+        energy_per_nucleon = float(cs_kinetic_e)/float(cs_nucleon_num)
+        if energy_per_nucleon >= 6.0:
+            raise forms.ValidationError("Assertion Error, Energy per nucleon is too high.")
+        return cd
+
+class ChargeStateTargetForm(forms.Form):
+    name = "charge_state_target_form"
+    cs_T_proton_num = forms.IntegerField(required=True, label="Z", help_text="(Proton number) *required", validators=[MaxValueValidator(MAX_TARGET_Z), MinValueValidator(MIN_TARGET_Z)])
+
+########################################################
+# Energy Loss Forms
+########################################################
+
+class EnergyLossIonForm(forms.Form):
+    name = "energy_loss_ion_form"
+    el_nucleon_num = forms.IntegerField(required=True, label="A",help_text="(Nucleon number) *required", validators=[MaxValueValidator(MAX_NUCLEON_NUM),MinValueValidator(1)])
+    el_proton_num = forms.IntegerField(required=True, label="Z", help_text="(Proton number) *required", validators=[MaxValueValidator(MAX_PROTON_NUM), MinValueValidator(1)])
+    el_energy = forms.DecimalField(required=True, label="E", help_text="MeV (Kinetic energy) *required", validators=[MinValueValidator(0)])
+
+class EnergyLossTargetChoiceForm(forms.Form):
+    name = "energy_loss_target_choice_form"
+    TARGET_CHOICES = ((1, ""),(2,"Pre-defined Compound"),(3,"Self-defined Element"), (4,"Self-defined Compound"))
+    target_material_choice = forms.ChoiceField(required=True, label="Target Material",help_text=" *required",choices=TARGET_CHOICES, initial=1)
+
+class EnergyLossPreDefinedChoiceForm(forms.Form):
+    name = "energy_loss_pre_defined_target_choice_form"
+    PRE_DEF_CHOICES = ((1, ""), (2, "isobutane"), (3, "mylar"), (4, "polyethylene"), (5,"CD2"), (6, "LiF"), (7, "propanediol"))
+    pre_defined_mat_choice = forms.ChoiceField(required=False, label="Pre-defined Compound", choices=PRE_DEF_CHOICES, initial=1)
+
+class EnergyLossPressureForm(forms.Form):
+    name = "energy_loss_pressure_form"
+    el_pressure = forms.DecimalField(required=False, label="P", help_text="Torr (Gas pressure) *required", validators=[MinValueValidator(0)])
+
+class EnergyLossSelfDefinedElementForm(forms.Form):
+    name = "energy_loss_target_element_form"
+    target_element_proton_num = forms.IntegerField(required=False, label="Z", help_text="(Proton number) *required", validators=[MaxValueValidator(MAX_PROTON_NUM), MinValueValidator(1)])
+
+class EnergyLossSelfDefinedCompoundForm(forms.Form):
+    name = "energy_loss_target_compound_form"
+    target_compound = forms.CharField(required=False,label="Self-defined Compound",help_text="using CaseLetterDigit format (ex: water would be H2O & salt would be NaCl)", max_length=15)
+
+class EnergyLossDensityForm(forms.Form):
+    name = "energy_loss_density_form"
+    target_compound_density = forms.DecimalField(required=False,label="Compound Density",help_text="g/cm^3 *required", validators=[MinValueValidator(0)])
+
+class EnergyLossTargetThicknessForm(forms.Form):
+    name = "energy_loss_target_thickness_form"
+    target_thickness = forms.DecimalField(required=True, label="Target Thickness", validators=[MinValueValidator(0)])
+
+class EnergyLossTargetThicknessUnitChoiceForm(forms.Form):
+    name = "energy_loss_thickness_unit_choice_form"
+    UNIT_CHOICES = ((0,"ug/cm^2"),(1,"um"))
+    thickness_unit_choice = forms.ChoiceField(required=True, label="", help_text=" *required", choices=UNIT_CHOICES, initial=0)
 
 
 
-
-
+ 
 
 
 

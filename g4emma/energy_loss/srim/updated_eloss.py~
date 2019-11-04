@@ -1,0 +1,147 @@
+from nuclear_reactions import U
+
+from srim import *
+
+
+#An re-written, quicker, and cleaner version of energy_loss function, which makes use of srim.Material knowledge
+#Calculates the exit energy for an energetic ion moving through a material
+#
+#  Rewritten Jun 3, 2019 cause I was fed up with this cludgy, old code
+#
+#  A_beam             : A of incident ions 
+#  Z_beam             : Z of incident ions
+#  E_beam             : Energy of incident ions (if no units, defaults to MeV)
+#  stopping_materials : A srim material, as constructed by the Material() class
+#  material_thickness : thickness of stopping medium, (DEFAULT None, takes it from Material() obj)
+#  deg                : DEFAULT 4, degree of polynomial to fit the E_loss vs dist function
+#  upper_win          : upper window (in terms of entries) above the initial E_beam 
+#  lower_win          : lower window ""
+def energy_loss(A_beam, Z_beam, E_beam, stopping_material, material_thickness=None, deg=4, upper_win=5, lower_win=5, show=False, units=True):
+
+    if material_thickness is None:
+        material_thickness = stopping_material.thickness 
+    
+    #Verify we are coming in with units
+    if not nr.has_units(E_beam):
+        E_beam = E_beam*default_E_unit
+
+    #Ensure we're working in the correct units
+    E_beam = E_beam.to(default_E_unit)
+    dist_material = (material_thickness / stopping_material.density).to(default_dist_unit)
+    
+
+    #Get the SRIM sim outputs:
+    #  1) Get an upper Energy bound ( by rounding up to next largest power of 10)
+    #  2) generate the stopping and range table
+    #  3) read in the table
+    max_Ebeam = (10**int(np.ceil(np.log10(E_beam.m))))*E_beam.u        
+    SRIM_table = get_table(A_beam, Z_beam, stopping_material, max_Ebeam)    
+    srim_Estop, srim_dist = read_srim_table(SRIM_table)
+
+    #Get the index closest to our starting E_beam val
+    idx_E = np.argmin(np.abs(srim_Estop - E_beam))
+
+    #If we fully stop in this material, will recoil out of material with 0.0 energy
+    if srim_dist[idx_E] < dist_material:
+        return 0.*default_E_unit
+
+    #Create out little windows for the poly_fit
+    i_upper = idx_E + upper_win if ((idx_E + upper_win) < len(srim_Estop)) else len(srim_Estop)
+    i_lower = idx_E - lower_win if ((idx_E - lower_win) > 0) else 0
+
+    srim_Estop = srim_Estop[ i_lower : i_upper ]
+    srim_dist  = srim_dist[  i_lower : i_upper ]       
+
+    if show:
+        print('Srim energy window (about ' + str(srim_Estop[idx_E - (i_lower + lower_win)]) + ', i=' +str(idx_E) +'): ' +\
+              str(srim_Estop[0]) + '(i=' + str(i_lower) +') up to ' + str(srim_Estop[-1]) + '(i=' + str(i_upper) +')')
+
+    # I like being explicity that E_dist, dist_E is a function:
+    poly_funct_E_dist = np.poly1d(np.polyfit(srim_dist, srim_Estop, deg))
+    def E_dist(a_dist):
+        return poly_funct_E_dist(a_dist)
+
+    poly_funct_dist_E = np.poly1d(np.polyfit(srim_Estop, srim_dist, deg))   
+    def dist_E(an_E):
+        return poly_funct_dist_E(an_E)
+
+    #I can't do two different polyfits b/c the slight differences in the fits causes delta_dist ~10 um,
+    # which is unacceptable for super thin targets. I need an actual inverse function:
+    def dist2_E(an_E):
+        if isinstance(an_E, type(1.*default_E_unit)):
+            an_E = an_E.to(defualt_E_unit).
+        
+        min_E, max_E = srim_Estop[0], srim_Estop[-1]
+
+        #can do this cause, even for arbitrary polynomial orders,
+        # the Eloss vs dist travelled funciton should be monotonically increasing
+        # with the srim E and dist windows
+        for roots in (poly_func_E_dist - an_E).roots:
+    
+
+    #Get residual distance  (equivalent to residual energy)
+    residual_dist = dist_E(E_beam) - dist_material.m
+
+
+    if show:
+        #capture a range just beyond the actual range, for plotting purposes
+        E_range, d_range = srim_Estop.m, srim_dist.m        
+        E_range = np.arange(E_range[0] - (E_range[1] - E_range[0]), E_range[-1] + (E_range[-1] - E_range[-2]), 0.1)
+        d_range = np.arange(d_range[0] - (d_range[1] - d_range[0]), d_range[-1] + (d_range[-1] - d_range[-2]), 0.1)
+
+        plt.subplot(3,1,1)
+        plt.plot(d_range, E_beam.m*np.ones(d_range.size), color='black', lw=2, label='Init E_beam')
+        plt.plot(dist_E(E_beam)*np.ones(E_range.size), E_range, color='black', lw=2, label='Init stopping thickness')
+        plt.plot(dist_E(E_beam) - dist_material.m*np.ones(E_range.size), E_range, color='black', lw=2, )        
+        
+        plt.scatter(srim_dist, srim_Estop, label ="SRIM")
+        plt.plot(d_range, E_dist(d_range), '--', label ="E_dist")
+        plt.plot(dist_E(E_range), E_range, '--', label = 'dist_E')
+
+        plt.plot(dist_E(E_beam), E_beam, 'ro', ms=5, label='Init E')
+        plt.plot(residual_dist, E_dist(residual_dist), 'go', ms=5, label='Final E, res_dist')
+        
+        plt.xlabel('Dist (' + str(srim_dist.u) + ')')
+        plt.ylabel('Energy (' + str(srim_Estop.u) + ')')
+        plt.title( nr.elements[Z_beam]+ ' through ' + stopping_material.name)        
+        plt.legend(loc='best')
+
+        plt.subplot(3,1,2)
+        E_test = np.arange(E_range[0], E_range[-1], 0.01) # create a high resolution E
+        d_test, E_disp = dist_E(E_test), []
+        for a_d in d_range:
+            E_disp.append(E_test [ np.argmin(np.abs(d_test - a_d)) ])
+        plt.plot(d_range, E_disp - E_dist(d_range))
+
+        plt.subplot(3,1,3)
+        d_test = np.arange(d_range[0], d_range[-1], 0.01) # create a high resolution dist
+        E_test, d_disp = E_dist(d_test), []
+        for an_E in E_range:
+            d_disp.append(d_test [ np.argmin(np.abs(E_test - an_E)) ])
+
+
+        plt.plot(d_disp - dist_E(E_range), E_range)
+
+
+        
+        plt.show()
+
+    #If we've gone over the whole range, and still not found a positive residual energy, it's 0.
+    if i_lower == 0 and residual_dist < 0.:
+        return 0.*U.MeV
+   
+    #If we've truncated too much for the final E, widen bottom window for fit
+    # this should be avoided, as it'll introduce errors in the local fits
+    if residual_dist < srim_dist[0].m:
+        if show:
+            print('residual_dist: ' + str(residual_dist) + ', widening sample window: '+ str( lower_win + 2))
+        return energy_loss(A_beam, Z_beam, E_beam, stopping_material, material_thickness=material_thickness, \
+                           deg = deg, lower_win = lower_win + 2, show=show)
+
+    return E_dist(residual_dist)*default_E_unit
+ 
+
+mat = Material()
+mat.set_element('Al')
+mat.set_thickness(40*U.ug / U.cm**2)
+print(energy_loss(4,2,50*U.MeV, mat, show=True, upper_win=20, lower_win=25))

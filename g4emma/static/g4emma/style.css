@@ -123,6 +123,67 @@ nav a.nav-pill-active:active {
   color: #F0F0F0;
 }
 
+/* Dropdown Button */
+.dropbtn {
+  background-color: #CCC;
+  border: none;
+  border-radius: 7px;
+  color: #005BAA;
+  margin: 5px;
+  padding: 11px 0px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.dropbtn-active {
+  background-color: #005BAA;
+  border: none;
+  border-radius: 7px;
+  color: #F0F0F0;
+  margin: 5px;
+  padding: 12px 0px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #005BAA;
+}
+
+.dropdown-content a {
+  color: white;
+  padding: 12px 16px;
+  display: block;
+  font-size: 1.0rem;
+  font-weight: bold;
+  font-family: sans-serif;
+  text-decoration: none;
+}
+
+.dropdown-content a:hover {
+  background-color: #CCC;
+  color: #005BAA;
+  border-radius: 7px;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+  border-radius: 7px;
+}
+
+.dropdown:hover .dropbtn {
+  background-color: #CCC;
+}
+
 #top-link {
   position: fixed;
   bottom: 65px;
@@ -171,6 +232,13 @@ main {
 }
 .sidebar-module ul ul {
   padding: 5px 10px;
+}
+
+.floatRight {
+  float: right;
+  margin-left: 10px;
+  width: 50%;
+  height: 40%;
 }
 
 .tool {

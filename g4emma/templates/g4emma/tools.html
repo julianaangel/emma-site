@@ -5,11 +5,13 @@
 
 <!-- Navigation -->
 {% block nav_tools_class %}nav-pill-active{% endblock %}
+{% block nav_drpbtn_class %}dropbtn-active{% endblock %}
 {% block nav_tools_url %}#{% endblock %}
 
 <!-- Main Content -->
 {% block main_content %}
-
+<br>
+<br>
 <div class="container-fluid tool-tiles">
   <!-- Rigidity -->
   <div class="row tool">
@@ -20,7 +22,7 @@
     </div> <!-- tool desc -->
     <div class="col-2 tool-link">
       <nav>
-        <a class="nav-pill" href="{% block tool_nav_rigidity_url %}{% url 'tools' %}{% endblock %}">Rigidity</a>
+        <a class="nav-pill" href="{% block tool_nav_rigidity_url %}{% url 'rigidity' %}{% endblock %}">Rigidity</a>
       </nav>
     </div> <!-- tool link -->
 
@@ -35,7 +37,7 @@
     <div class="col-2 tool-link">
       <nav>
         <a class="{% block tool_nav_eloss_class %}nav-pill{% endblock %}"
-        href="{% block tool_nav_eloss_url %}{% url 'tools' %}{% endblock %}">Energy Loss</a>
+        href="{% block tool_nav_eloss_url %}{% url 'energy_loss' %}{% endblock %}">Energy Loss</a>
       </nav>
     </div> <!-- col-3 link -->
   </div> <!-- row -->
@@ -50,7 +52,7 @@
     <div class="col-2 tool-link">
       <nav>
         <a class="{% block tool_nav_qstate_class %}nav-pill{% endblock %}"
-        href="{% block tool_nav_qstate_url %}{% url 'tools' %}{% endblock %}">Charge State</a>
+        href="{% block tool_nav_qstate_url %}{% url 'charge_state' %}{% endblock %}">Charge State</a>
       </nav>
     </div> <!-- tool link -->
 

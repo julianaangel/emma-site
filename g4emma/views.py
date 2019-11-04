@@ -11,6 +11,17 @@ from django.core import serializers
 from pathlib import Path
 from os import environ
 import logging
+#######################################################################
+# Packages for Tools:
+#######################################################################
+import numpy as np
+from scipy.integrate import cumtrapz
+import g4emma.charge_state.charge_state_plotter as cs
+import g4emma.energy_loss.srim as sr
+from g4emma.charge_state.nuclear_tools import U
+import io, urllib, base64
+from django import forms
+#######################################################################
 
 stdlogger = logging.getLogger('django')
 
@@ -193,6 +204,179 @@ def tools(request):
     stdlogger.info("Call to tools view")
     return render(request, 'g4emma/tools.html')
 
+def rigidity(request):
+    stdlogger.info("Call to rigidity view")
+    Rb = 0.0
+    Re = 0.0
+    if request.method == 'POST':
+        form_rig = G4Forms.RigidityForm(request.POST)
+        if form_rig.is_valid():
+            rig_params = form_rig.cleaned_data
+            m = float(rig_params['rig_nucleon_num'])*931.494
+            p = np.sqrt((float(rig_params['rig_kinetic_e']) + m)**2 - m**2)
+            v = p/(float(rig_params['rig_kinetic_e']) + m)
+            Rb = (p*5.34428e-22)/(float(rig_params['rig_charge_state'])*1.60217e-19)
+            Re = p*v/(float(rig_params['rig_charge_state']))
+            return render(request, 'g4emma/tools/rigidity.html', {'form': form_rig, 'electric_rig': round(Re,5), 'magnetic_rig': round(Rb,5)})
+    else:
+        form_rig = G4Forms.RigidityForm()
+    return render(request, 'g4emma/tools/rigidity.html', {'form': form_rig, 'electric_rig': Re, 'magnetic_rig': Rb})
+
+
+def charge_state(request):
+    stdlogger.info("Call to charge_state view")
+    if request.method == 'POST':
+        form_cs_beam = G4Forms.ChargeStateIonForm(request.POST)
+        form_cs_target = G4Forms.ChargeStateTargetForm(request.POST)
+        if form_cs_beam.is_valid() and form_cs_target.is_valid():
+            beam_params = form_cs_beam.cleaned_data
+            target_param = form_cs_target.cleaned_data
+            energy_per_nucleon = float(beam_params['cs_kinetic_e'])/float(beam_params['cs_nucleon_num'])
+            try:
+                fig, qs_ND, sigmas_ND, qs_Shima, sigmas_Shima, qs_Schiw, sigmas_Schiw, x_data, y_ND, y_Shima, y_Schiw = cs.generate_charge_state_plots(float(beam_params['cs_nucleon_num']), beam_params['cs_proton_num'], target_param['cs_T_proton_num'], energy_per_nucleon)
+                buf = io.BytesIO()
+                fig.savefig(buf,format='png')
+                buf.seek(0)
+                string = base64.b64encode(buf.read())
+                uri = 'data:image/png;base64,' + urllib.parse.quote(string)
+                cs_x = []
+                cs_y_ND = []
+                cs_y_Sh = []
+                cs_y_Sc = []
+                k = 0
+                for xi in x_data:
+                    if k % 1 == 0:
+                        cs_x.append(round(xi,2))
+                        cs_y_ND.append(float('{:0.5e}'.format(y_ND[k])))
+                        cs_y_Sh.append(float('{:0.5e}'.format(y_Shima[k])))
+                        cs_y_Sc.append(float('{:0.5e}'.format(y_Schiw[k])))
+                    k += 1
+                request.session["charge_state_x"] = cs_x
+                request.session["charge_state_y_ND"] = cs_y_ND
+                request.session["charge_state_y_Shima"] = cs_y_Sh
+                request.session["charge_state_y_Schiw"] = cs_y_Sc
+                return render(request, 'g4emma/tools/charge_state.html', {'beam_form': form_cs_beam, 'target_form': form_cs_target, 'image': uri, 'mu_ND': round(qs_ND[0],4), 'sig_ND': round(sigmas_ND[0],4), 'mu_Shima': round(qs_Shima[0],4), 'sig_Shima': round(sigmas_Shima[0],4), 'mu_Schiw': round(qs_Schiw[0],4), 'sig_Schiw': round(sigmas_Schiw[0],4)})
+            except forms.ValidationError:
+                return render(request, 'g4emma/tools/charge_state.html', {'beam_form': form_cs_beam, 'target_form': form_cs_target, 'invalid': True})
+    else:
+        form_cs_beam = G4Forms.ChargeStateIonForm()
+        form_cs_target = G4Forms.ChargeStateTargetForm()
+    return render(request, 'g4emma/tools/charge_state.html', {'beam_form': form_cs_beam, 'target_form': form_cs_target})
+
+def charge_state_results(request):
+    stdlogger.info("Call to charge_state_results view")
+    x = request.session["charge_state_x"]
+    y_ND = request.session["charge_state_y_ND"]
+    y_Shima = request.session["charge_state_y_Shima"]
+    y_Schiw = request.session["charge_state_y_Schiw"]
+    y_ND_int = cumtrapz(y_ND, x)
+    y_Shima_int = cumtrapz(y_Shima, x)
+    y_Schiw_int = cumtrapz(y_Schiw, x)
+    dx = x[1] - x[0]
+    x_bounds = []
+    for xi in np.arange(0.5,x[-1]+dx,1):
+        x_bounds.append(x.index(xi) - 1)
+    y_ND_perc = []
+    y_Shima_perc = []
+    y_Schiw_perc = []
+    y_ND_perc.append((y_ND_int[x_bounds[0]] - y_ND_int[0])*100)
+    y_Shima_perc.append((y_Shima_int[x_bounds[0]] - y_Shima_int[0])*100)
+    y_Schiw_perc.append((y_Schiw_int[x_bounds[0]] - y_Schiw_int[0])*100)
+    k = 0
+    for xi in x_bounds:
+        if xi == x_bounds[-1]:
+            y_ND_perc.append((y_ND_int[-1]-y_ND_int[xi])*100)
+            y_Shima_perc.append((y_Shima_int[-1] - y_Shima_int[xi])*100)
+            y_Schiw_perc.append((y_Schiw_int[-1] - y_Schiw_int[xi])*100)
+        else:
+            y_ND_perc.append((y_ND_int[x_bounds[k+1]] - y_ND_int[xi])*100)
+            y_Shima_perc.append((y_Shima_int[x_bounds[k+1]] - y_Shima_int[xi])*100)
+            y_Schiw_perc.append((y_Schiw_int[x_bounds[k+1]] - y_Schiw_int[xi])*100)
+            k += 1
+    y_ND_perc = np.array(y_ND_perc)/sum(y_ND_perc)
+    y_Shima_perc = np.array(y_Shima_perc)/sum(y_Shima_perc)
+    y_Schiw_perc = np.array(y_Schiw_perc)/sum(y_Schiw_perc)
+    charge_state_data = zip(np.arange(0,x[-1]+dx+1,1), y_ND_perc, y_Shima_perc, y_Schiw_perc)
+    return render(request, 'g4emma/tools/charge_state_results.html', {'cs_data': charge_state_data})
+
+def energy_loss(request):
+    stdlogger.info("Call to energy_loss view")
+    if request.method == 'POST':
+        ion_form = G4Forms.EnergyLossIonForm(request.POST)
+        target_choice_form = G4Forms.EnergyLossTargetChoiceForm(request.POST)
+        pre_choice_form = G4Forms.EnergyLossPreDefinedChoiceForm(request.POST)
+        pressure_form = G4Forms.EnergyLossPressureForm(request.POST)
+        element_form = G4Forms.EnergyLossSelfDefinedElementForm(request.POST)
+        compound_form = G4Forms.EnergyLossSelfDefinedCompoundForm(request.POST)
+        density_form = G4Forms.EnergyLossDensityForm(request.POST)
+        thickness_form = G4Forms.EnergyLossTargetThicknessForm(request.POST)
+        unit_form = G4Forms.EnergyLossTargetThicknessUnitChoiceForm(request.POST)
+        forms_list = [ion_form, target_choice_form, pre_choice_form, pressure_form, element_form, compound_form, density_form, thickness_form, unit_form]
+        forms_all_valid = True
+        for form_i in forms_list:
+            forms_all_valid = forms_all_valid and form_i.is_valid()
+        if forms_all_valid:
+            ion_params = ion_form.cleaned_data
+            target_choice = target_choice_form.cleaned_data
+            thickness = thickness_form.cleaned_data
+            unit = unit_form.cleaned_data
+            pre_defined = False
+            element = False
+            compound = False
+            gas = False
+            try:
+                Target = sr.Material()
+                if target_choice['target_material_choice'] == '2':
+                    pre_defined_compound = pre_choice_form.cleaned_data
+                    pre_defined = True
+                    if pre_defined_compound['pre_defined_mat_choice'] == '2':
+                        gas = True
+                        pressure_data = pressure_form.cleaned_data
+                        pressure = pressure_data['el_pressure']
+                        Target.isobutane(float(pressure)*U.torr)
+                    elif pre_defined_compound['pre_defined_mat_choice'] == '3':
+                        Target.mylar()
+                    elif pre_defined_compound['pre_defined_mat_choice'] == '4':
+                        Target.polyethylene()
+                    elif pre_defined_compound['pre_defined_mat_choice'] == '5':
+                        Target.CD2()
+                    elif pre_defined_compound['pre_defined_mat_choice'] == '6':
+                        Target.LiF()
+                    elif pre_defined_compound['pre_defined_mat_choice'] == '7':
+                        Target.propanediol()
+                elif target_choice['target_material_choice'] == '3':
+                    chosen_element = element_form.cleaned_data
+                    element = True
+                    Target.set_element(chosen_element['target_element_proton_num'])
+                elif target_choice['target_material_choice'] == '4':
+                    chosen_compound = compound_form.cleaned_data
+                    target_density = density_form.cleaned_data
+                    compound = True
+                    Target.set_compound(chosen_compound['target_compound'])
+                    Target.set_density(float(target_density['target_compound_density'])*(U.g/U.cm**3))
+                if unit['thickness_unit_choice'] == '0':
+                    Target.set_thickness(float(thickness['target_thickness']))
+                elif unit['thickness_unit_choice'] == '1':
+                    Target.set_thickness(float(thickness['target_thickness'])*U.um)
+                energy_loss = sr.energy_deposited(ion_params['el_nucleon_num'],ion_params['el_proton_num'], float(ion_params['el_energy'])*U.MeV, Target)
+                energy_loss = energy_loss.m
+                if float(energy_loss) == float(ion_params['el_energy']):
+                    return render(request, 'g4emma/tools/energy_loss.html', {'ion_form':ion_form, 'target_choice_form':target_choice_form, 'pre_choice_form':pre_choice_form,'pressure_form':pressure_form,'element_form':element_form, 'compound_form':compound_form,'density_form':density_form, 'thickness_form':thickness_form, 'unit_form':unit_form, 'energy_loss':round(energy_loss,3), 'pre_defined':pre_defined, 'element':element,'compound':compound,'gas':gas, 'stopped':True})
+                else:
+                    return render(request, 'g4emma/tools/energy_loss.html', {'ion_form':ion_form, 'target_choice_form':target_choice_form, 'pre_choice_form':pre_choice_form,'pressure_form':pressure_form,'element_form':element_form, 'compound_form':compound_form,'density_form':density_form, 'thickness_form':thickness_form, 'unit_form':unit_form, 'energy_loss':round(energy_loss,3), 'pre_defined':pre_defined, 'element':element,'compound':compound,'gas':gas})
+            except forms.ValidationError:
+                return render(request, 'g4emma/tools/energy_loss.html', {'ion_form':ion_form, 'target_choice_form':target_choice_form, 'pre_choice_form':pre_choice_form,'pressure_form':pressure_form,'element_form':element_form, 'compound_form':compound_form,'density_form':density_form, 'thickness_form':thickness_form, 'unit_form':unit_form, 'pre_defined':pre_defined, 'element':element,'compound':compound,'gas':gas, 'invalid':True})
+    else:
+        ion_form = G4Forms.EnergyLossIonForm()
+        target_choice_form = G4Forms.EnergyLossTargetChoiceForm()
+        pre_choice_form = G4Forms.EnergyLossPreDefinedChoiceForm()
+        pressure_form = G4Forms.EnergyLossPressureForm()
+        element_form = G4Forms.EnergyLossSelfDefinedElementForm()
+        compound_form = G4Forms.EnergyLossSelfDefinedCompoundForm()
+        density_form = G4Forms.EnergyLossDensityForm()
+        thickness_form = G4Forms.EnergyLossTargetThicknessForm()
+        unit_form = G4Forms.EnergyLossTargetThicknessUnitChoiceForm()
+    return render(request, 'g4emma/tools/energy_loss.html',{'ion_form': ion_form, 'target_choice_form':target_choice_form, 'pre_choice_form':pre_choice_form,'pressure_form':pressure_form,'element_form':element_form, 'compound_form':compound_form,'density_form':density_form, 'thickness_form':thickness_form,'unit_form':unit_form})
 
 def results(request):
     stdlogger.info("Call to results view")

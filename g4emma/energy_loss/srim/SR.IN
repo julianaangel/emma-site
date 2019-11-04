@@ -1,0 +1,16 @@
+---Stopping/Range Input Data(Number-format: Period = Decimal Point)
+---Output File Name
+"/opt/emma/g4emma/g4emma/energy_loss/srim/test_tables/21Na-isobutane_6.0torr.dat"
+---Ion(Z), Ion Mass(u)
+11 21
+---Target Data: (Solid=0,Gas=1), Density(g/cm3), Compound Corr.
+1 1.940694179895985e-05 1.037196
+---Number of Target Elements
+ 2 
+---Target Elements: (Z), Target name, Stoich, Target Mass(u)
+6 "" 4 12.011
+1 "" 10 1.008
+---Output Stopping Units (1-8)
+ 5
+---Ion Energy : E-Min(keV), E-Max(keV)
+ 10.0 100000.0

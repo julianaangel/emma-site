@@ -1,0 +1,91 @@
+{% extends "g4emma/base.html" %}
+
+<!-- Title -->
+{% block title %}{{ block.super }} - Energy Loss{% endblock %}
+
+{% block js_links %}
+{% load static %}
+{{ block.super }}
+<script src="{% static 'g4emma/forms_visibility_control_el.js' %}"></script>
+{% endblock %}
+
+<!-- Navigation -->
+{% block nav_tools_class %}nav-pill-active{% endblock %}
+{% block nav_drpbtn_class %}dropbtn-active{% endblock %}
+{% block nav_energy_loss_url %}#{% endblock %}
+
+<!-- Main Content -->
+{% block main_content %}
+
+<h2 id="submit_msg">Energy Loss Calculation (using SRIM)</h2>
+<br>
+<br>
+
+{% if form.errors %}
+<p style="color: red;"> Please correct the error{{form.errors|pluralize }} below.</p>
+{% endif %}
+
+{% if ion_form.errors %}
+<p style="color: red;"> Please correct the error{{ion_form.errors|pluralize}} below.</p>
+{% endif %}
+
+{% if invalid %}
+<p style="color: red;"> The data table for the given parameters has not yet been simulated in SRIM. Live interfacing with SRIM is coming soon.</p>
+{% endif %}
+
+<form id="el_form" action="" method="post">
+  <ul>
+    <p>Incident Ion Properties: </p>
+    <div class="{{ ion_form.name}}">
+      {{ion_form.as_ul }}
+    </div>
+    <br>
+    <p>Target Properties: </p>
+    <div class="{{ target_choice_form.name}}">
+      {{target_choice_form.as_ul}}
+    </div>
+    <div class="{{ pre_choice_form.name}}">
+      {{pre_choice_form.as_ul}}
+    </div>
+    <div class="{{ pressure_form.name}}">
+      {{pressure_form.as_ul}}
+    </div>
+    <div class="{{element_form.name}}">
+      {{element_form.as_ul}}
+    </div>
+    <div class="{{compound_form.name}}">
+      {{compound_form.as_ul}}
+    </div>
+    <br>
+    <div style="float: left; padding: 5px;">
+      {{thickness_form.as_ul}}
+    </div>
+    <div style="float: none;">
+      {{unit_form.as_ul}}
+    </div>
+  </ul>
+  <br>
+  <br>
+  {% csrf_token %}
+  <input type="submit" value="Submit">
+</form>
+
+{% if energy_loss %}
+<br style="line-heigth:2;"></br>
+<p> Mean Energy Loss = {{energy_loss}} MeV</p>
+{% if stopped %}
+<p style="color: red;"> Ion is stopped in target. </p>
+{% endif %}
+<br>
+<a href="https://emma.triumf.ca/tools/energy_loss/">
+<button>Clear Parameters</button>
+</a>
+<!--
+<p> Straggling = {{straggling}} MeV</p>
+{% if range %}
+<p> Mean Range = {{range}} &mu;m</p>
+{% endif %} -->
+{% endif %}
+
+{% endblock %}
+
