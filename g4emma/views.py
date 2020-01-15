@@ -223,6 +223,13 @@ def rigidity(request):
     return render(request, 'g4emma/tools/rigidity.html', {'form': form_rig, 'electric_rig': Re, 'magnetic_rig': Rb})
 
 
+
+def multiple_scattering(request): 
+    stdlogger.info("Call to multiple_scattering view")
+    return render(request, 'g4emma/tools/multiple_scattering.html')
+
+
+
 def charge_state(request):
     stdlogger.info("Call to charge_state view")
     if request.method == 'POST':
