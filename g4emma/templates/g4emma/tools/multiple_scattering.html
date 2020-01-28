@@ -10,16 +10,16 @@
 
 <!-- Main Content -->
 {% block main_content %}
-
+<!--
 	{% if image %}
 		
 		<img src="{{ image }}" alt="Multiple Scattering Plots" class="floatRight">
 
 	{% endif %} 
-
+//-->
 	<h2 id="submit_msg">Multiple Scattering Calculation</h2>
 	<br>
-
+<!--
 	{% if beam_form.errors %}
 		<p style="color: red;">
 			Please correct the error{{ beam_form.errors|pluralize }} below.
@@ -37,8 +37,8 @@
 			Could not find isotope data: Are you sure those are the correct A and Z values ?
 		</p>
 	{% endif %}
-
-
+//-->
+<!--
 	<form id="cs_form" action="" method="post" novalidate>
     		<ul>
 			<p> Incident Ion Properties: </p>
@@ -54,7 +54,7 @@
     		{% csrf_token %}
     		<input type="submit" value="Submit">
  	</form>
-
+//-->
 	{% if image %}
 		<br style="line-height:3;"><br>
 		<p> Nikolaev:&nbsp;&nbsp; &mu; = {{ mu_ND }} , &sigma; = {{ sig_ND }}  </p> 

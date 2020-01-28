@@ -13,5 +13,5 @@ urlpatterns = [
     url(r'^tools/energy_loss/$', views.energy_loss, name='energy_loss'),
     url(r'^tools/charge_state/$', views.charge_state, name='charge_state'),
     url(r'^tools/charge_state_results/$', views.charge_state_results, name='charge_state_results'),
-    url(r'^tools/multiple_scattering/$,' views.multiple_scattering, name='multiple_scattering'),
+    #url(r'^tools/multiple_scattering/$,' views.multiple_scattering, name='multiple_scattering'),
 ]
