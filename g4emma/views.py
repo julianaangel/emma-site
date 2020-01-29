@@ -225,7 +225,7 @@ def rigidity(request):
 
 
 def multiple_scattering(request): 
-    stdlogger.info("Call to multiple_scattering view")
+    #stdlogger.info("Call to multiple_scattering view")
     return render(request, 'g4emma/tools/multiple_scattering.html')
 
 
