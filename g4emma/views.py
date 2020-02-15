@@ -16,9 +16,13 @@ import logging
 #######################################################################
 import numpy as np
 from scipy.integrate import cumtrapz
+from scipy.interpolate import interp1d
+import scipy.special as special
+import scipy.integrate as integrate
 import g4emma.charge_state.charge_state_plotter as cs
 import g4emma.energy_loss.srim as sr
 from g4emma.charge_state.nuclear_tools import U
+import g4emma.multiple_scattering.multiple_scattering as ms
 import io, urllib, base64
 from django import forms
 #######################################################################
