@@ -121,6 +121,26 @@ def F(x, xc, B, gamma):
 #------------#------------#------------#------------#------------#------------#------------#
     
 
+# this will be called in the view function. The code in there will handle the rest
+def set_parameters(E, Mc2, z, Z, A, t):
+    
+    params = model_parameters(E, Mc2, z, Z, A, t)
+    
+    return params
+
+def gaussian_sigma(x, v2, params, rad=False):
+    inter = interp1d(v2(x), x)
+    a = 1/np.e
+    pt = inter(a)
+    sigma = pt/np.sqrt(2) #np.sqrt(-0.5 * pt**2 * np.log(a)) #
+    sigma_rad = sigma*params.xc_*np.sqrt(params.B_)
+    if rad == True:
+        return sigma_rad
+    else: 
+        return sigma_rad*(180/np.pi)
+
+def gaussian_FWHM(sigma):
+    return 2*np.sqrt(2*np.log(2))*sigma
 
 
 

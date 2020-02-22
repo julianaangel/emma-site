@@ -15,6 +15,7 @@ import logging
 # Packages for Tools:
 #######################################################################
 import numpy as np
+from scipy.optimize import fsolve
 from scipy.integrate import cumtrapz
 from scipy.interpolate import interp1d
 import scipy.special as special
@@ -229,8 +230,39 @@ def rigidity(request):
 
 
 def multiple_scattering(request): 
-    #stdlogger.info("Call to multiple_scattering view")
-    return render(request, 'g4emma/tools/multiple_scattering.html')
+    stdlogger.info("Call to multiple_scattering view")
+    sigma_rad = 0.0
+    sigma_deg = 0.0
+    FWHM_rad = 0.0
+    FWHM_deg = 0.0
+    B = 0.0
+    if request.method == 'POST':
+        form_ms = G4Forms.MultipleScatteringForm(request.POST)
+        if form_ms.is_valid():
+            form_params = form_ms.cleaned_data
+            E = float(form_params['ms_kinetic_e'])
+            M = float(form_params['ms_rest_mass'])
+            z = float(form_params['ms_incident_proton_num'])
+            Z = float(form_params['ms_target_proton_num'])
+            A = float(form_params['ms_target_nucleon_num'])
+            t = float(form_params['ms_target_density'])
+            params = ms.set_parameters(E,M,z,Z,A,t)
+            Fref = ms.F(0,params.xc_,params.B_,params.gamma_)
+            def F_normed(x): 
+                return (1/Fref)*ms.F(x,params.xc_,params.B_,params.gamma_) 
+            v2 = np.vectorize(F_normed)
+            x = np.arange(0, 6, 0.05) # need this, gaussian_sigma depends on x for interpolation
+            sigma_rad = ms.gaussian_sigma(x, v2,params,rad=True)
+            sigma_deg = sigma_rad*(180/np.pi)
+            FWHM_rad = ms.gaussian_FWHM(sigma_rad)
+            FWHM_deg = ms.gaussian_FWHM(sigma_deg)
+            sigma_rad = sigma_rad*1000
+            FWHM_rad = FWHM_rad*1000
+            B = params.B_ 
+            return render(request, 'g4emma/tools/multiple_scattering.html', {'form': form_ms, 'sigma': round(sigma_rad,5),'sigma_deg': round(sigma_deg,5), 'FWHM': round(FWHM_rad,5), 'FWHM_deg': round(FWHM_deg,5), 'B_param': round(B,2)})
+    else:
+        form_ms = G4Forms.MultipleScatteringForm()
+    return render(request, 'g4emma/tools/multiple_scattering.html', {'form': form_ms, 'sigma': sigma_rad,'sigma_deg': sigma_deg, 'FWHM': FWHM_rad, 'FWHM_deg': FWHM_deg, 'B_param': B})
 
 
 

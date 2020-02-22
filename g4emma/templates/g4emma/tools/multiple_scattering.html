@@ -12,19 +12,21 @@
 
 {% block main_content %}
 
-<p> This is a test message. </p>
-<!--
 
-	<h2 id="submit_msg">Rigidity Calculation</h2>
+
+
+	<h2 id="submit_msg">Multiple Scattering Calculation</h2>
 	<br>
+	<p> The angular distribution after scattering is evaluated with a modified NSW model detailed in "Multiple Scattering of Charged Particles" by Marion and Zimmerman, 1966. A Gaussian (normalized to unity at angle=0) is fit to the model distribution such that it has the same width as the distribution at the 1/e point. Integrals and functions are solved numerically with Python. 
+			</p>
 
-	{% if form.errors %}
+<!--	{% if form.errors %}
 		<p style="color: red;">
 			Please correct the error{{ form.errors|pluralize }} below.
 		</p>
 	{% endif %}
-	
-	<form id="rig_form" action="" method="post">
+//-->	
+	<form id="multiplescattering_form" action="" method="post">
     		<ul>
       			<div class="{{form.name}}">
          		{{ form.as_ul }}
@@ -34,21 +36,21 @@
     		<input type="submit" value="Submit">
  	</form>
 
-	{% if electric_rig > 0.0 and magnetic_rig > 0.0 %}
+	{% if sigma > 0.0 and FWHM > 0.0 %}
 		<br>
 		<br>
 		<ul>
-			<p> Electric Rigidity (R<sub>E</sub>) = {{electric_rig}} MV</p>
-			{% if electric_rig > 25.0 %}
-				<p style="color: red;"> Note: The maximum electric rigidity that EMMA can handle is 25 MV. </p>
-			{% endif %}
-			<p> Magnetic Rigidity (R<sub>B</sub>) = {{magnetic_rig}} Tm</p>
-			{% if magnetic_rig > 1.0 %}
-				<p style="color: red;"> Note: The maximum magnetic rigidity that EMMA can handle is 1 Tm. </p>
-			{% endif %}
+		<p> Gaussian Distribution Parameters: </p>
+		<p> Standard Deviation = {{sigma}} mrad ({{sigma_deg}} deg)</p>
+		<p> FWHM = {{FWHM}} mrad ({{FWHM_deg}} deg) </p>
+		<br>
+		<p> Model Parameters: </p>
+		<p> B = {{B_param}} </p>
+		<p style="color: red;"> The model is valid for B between 4 and 15 </p>   
 		</ul>
 	{% endif %}
-//-->
+
+
 {% endblock %}
 
 
