@@ -228,6 +228,10 @@ def rigidity(request):
     return render(request, 'g4emma/tools/rigidity.html', {'form': form_rig, 'electric_rig': Re, 'magnetic_rig': Rb})
 
 
+def multiple_scattering_info(request):
+    stdlogger.info("Call to multiple_scattering_info view")
+    return render(request, 'g4emma/tools/multiple_scattering_info.html')
+
 
 def multiple_scattering(request): 
     stdlogger.info("Call to multiple_scattering view")
@@ -246,7 +250,11 @@ def multiple_scattering(request):
             Z = float(form_params['ms_target_proton_num'])
             A = float(form_params['ms_target_nucleon_num'])
             t = float(form_params['ms_target_density'])
+            
+            M = M*931.494095 #convert amu to MeV/c**2
+            t = t*1e-6  #convert μg/cm**2 to g/cm**2
             params = ms.set_parameters(E,M,z,Z,A,t)
+               #model eats KE in Mev, M in MeV/c**2, z,Z,A in numbers and t in g/cm**2
             Fref = ms.F(0,params.xc_,params.B_,params.gamma_)
             def F_normed(x): 
                 return (1/Fref)*ms.F(x,params.xc_,params.B_,params.gamma_) 

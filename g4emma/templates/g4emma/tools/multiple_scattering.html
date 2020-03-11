@@ -20,6 +20,12 @@
 	<p> The angular distribution after scattering is evaluated with a modified NSW model detailed in "Multiple Scattering of Charged Particles" by Marion and Zimmerman, 1966. A Gaussian (normalized to unity at angle=0) is fit to the model distribution such that it has the same width as the distribution at the 1/e point. Integrals and functions are solved numerically with Python. 
 			</p>
 
+	<br>
+	<p>
+The method is described in detail <a href={% url 'multiple_scattering_info' %}>here.</A>
+	</p>
+	<br>
+
 <!--	{% if form.errors %}
 		<p style="color: red;">
 			Please correct the error{{ form.errors|pluralize }} below.
@@ -41,7 +47,7 @@
 		<br>
 		<ul>
 		<p> Gaussian Distribution Parameters: </p>
-		<p> Standard Deviation = {{sigma}} mrad ({{sigma_deg}} deg)</p>
+		<p> Standard Deviation \(\sigma\)  = {{sigma}} mrad ({{sigma_deg}} deg)</p>
 		<p> FWHM = {{FWHM}} mrad ({{FWHM_deg}} deg) </p>
 		<br>
 		<p> Model Parameters: </p>

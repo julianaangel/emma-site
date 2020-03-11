@@ -1,0 +1,65 @@
+{% extends "g4emma/base.html" %}
+
+<!-- Title -->
+{% block title %}{{ block.super }} - Multiple Scattering Methods{% endblock %}
+
+<!-- Navigation -->
+{% block nav_tools_class %}nav-pill-active{% endblock %}
+{% block nav_drpbtn_class %}dropbtn-active{% endblock %}
+{% block nav_multiscatt_url %}#{% endblock %}
+
+<!-- Main Content -->
+
+{% block main_content %}
+
+<h2 id="submit_msg">Multiple Scattering Calculation Details</h2>
+
+<br>
+<p>
+
+The calculation is based off the Nigam et al. (NSW) model proposed in "Multiple Scattering of Charged Particles" by Marion and Zimmerman, in NIM 51 (1967). It is an exact numerical compuation and does not reference any tables or precalculated results. The resulting angular scattering distribution as a function of scattering angle \(\theta\) is well-approximated by a Gaussian distribution, which produces the \(\sigma\) and FWHM presented in the results of the calculation. 
+</p>
+
+<p>
+The model depends on the following parameters: 
+$$\begin{align}
+E & \text{ - kinetic energy of incident particle in MeV} \\
+Mc^2 & \text{ - rest energy of incident particle in MeV} \\
+z & \text{ - atomic number of incident particle} \\
+Z & \text{ - atomic number of target}\\
+A & \text{ - nucleon number of target} \\
+t & \text{ - thickness of target in } g/cm^2
+\end{align} $$
+
+We then define the following additional values
+
+$$\begin{align}
+\chi_c^2 &= 0.1569 \frac{Z(Z+1)z^2t}{A(pv)^2} \\
+b &= \log\left( 2730\left[ \frac{(Z+1)Z^{1/3}z^2 t}{A\beta^2}  \right] \right) - 0.1544 \\
+\Gamma &= \sqrt{B} \exp\left( \frac{B-1.5}{2.2} \right) \\
+\end{align} $$
+
+where \(\beta = v/c\), \( (pv)^2=(E^2 +2EMc^2)\beta^2 \), and \( \beta^2 = 1-(1+E/Mc^2)^{-2}\) are familiar results from special relativity, and \(B\) is a solution of 
+
+$$ B- \log{B} = b. $$
+
+By defining the variable \(x = \theta /(\chi_c\sqrt{B}) \), the distribution is given by
+
+$$ F(x) = \frac{1}{\chi_c^2 B} \left[ F_0(x) + \frac{1}{B} F_1(x) +\frac{1}{2B^2} F_2(x) \right] $$
+
+with
+
+$$\begin{align} 
+F_0(x) & = 2\exp(-x^2)  \\
+F_ 1(x) & = \frac{1}{4} \int_0^\Gamma u^3 J_0(ux) \log\left(\frac{u^2}{4}\right) \exp\left(-\frac{u^2}{4}\right) du \\ 
+F_2(x) & = \frac{1}{16} \int_0^\Gamma u^5 J_0(ux) \log\left(\frac{u^2}{4}\right)^2 \exp\left(-\frac{u^2}{4}\right) du.
+\end{align} $$
+
+\(J_0\) denotes the Bessel function \(J_0(x) = \frac{1}{\pi} \int_0^\pi \cos(-x\sin{\tau}) d\tau.\) 
+</p>
+
+
+{% endblock %}
+
+
+

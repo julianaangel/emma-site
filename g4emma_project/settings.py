@@ -24,7 +24,7 @@ with open('/opt/emma/g4emma_site_key/secret_key.txt') as f:
     SECRET_KEY = f.read().strip() 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['emma.triumf.ca', '127.0.0.1']
 
