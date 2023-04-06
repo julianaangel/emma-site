@@ -1,0 +1,54 @@
+{% extends "g4emma/base.html" %}
+
+<!-- Title -->
+{% block title %}{{ block.super }} - Transmission Efficiency{% endblock %}
+
+<!-- Navigation -->
+{% block nav_tools_class %}nav-pill-active{% endblock %}
+{% block nav_drpbtn_class %}dropbtn-active{% endblock %}
+{% block nav_transeff_url %}#{% endblock %}
+
+<!-- Main Content -->
+{% block main_content %}
+
+
+
+	<h2 id="submit_msg">Transmission Efficiency Calculation</h2>
+	<br>
+<!--	<p>The transmission efficiency and error associated with it are evaluated using different types of Gaussian models that fit the data best. Functions are solved numerically with Python.
+			</p>
+-->
+	<p>
+		The transmission efficiency and error associated with it are evaluated using different types of Gaussian models that fit the data best. Functions are solved numerically with Python.Two file uploads are required:
+		<ul>
+			<li>The first is a 3-column .xlsx file with the columns labeled: "dT", "theta", "phi in this order. dT should be in dT values (not MeV) and theta and phi should be in degrees. </li>
+			<li>The second is a 2-column .xlsx file with the columns "dT" and "Full aperture relative uncertainty".</li>
+		</ul>
+	</p>
+
+	{% if form.errors %}
+		<p style="color: red;">
+			Please correct the error.
+		</p>
+	{% endif%}
+	
+	<form id="eff_form" action="" method="post">
+		<ul>
+			<div class="{{form.name}}">
+			{{ form.as_ul }}
+			</div>
+		</ul>
+		{% csrf_token %}
+		<input type="submit" value="Submit">
+	</form>
+
+	{% if results %}
+		<br>
+		<br>
+		<ul>
+			<p> Transmission Efficiency = {{results.avg_e}}</p>
+			<p> Error = {{results.total_e_error}} </p>
+		</ul>
+	{% endif %}
+
+{% endblock %}

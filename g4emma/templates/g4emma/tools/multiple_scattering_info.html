@@ -15,16 +15,19 @@
 <h2 id="submit_msg">Multiple Scattering Calculation Details</h2>
 
 <br>
+
+<h4>Marion and Zimmerman</h4>
+
 <p>
 
-The calculation is based off the Nigam et al. (NSW) model proposed in "Multiple Scattering of Charged Particles" by Marion and Zimmerman, in NIM 51 (1967). It is an exact numerical compuation and does not reference any tables or precalculated results. The resulting angular scattering distribution as a function of scattering angle \(\theta\) is well-approximated by a Gaussian distribution, which produces the \(\sigma\) and FWHM presented in the results of the calculation. 
+The calculation is based off the Nigam et al. (NSW) model formulated in "Multiple Scattering of Charged Particles" by Marion and Zimmerman, in NIM 51 (1967). It is an exact numerical compuation and does not reference any tables or precalculated results. The resulting angular scattering distribution as a function of scattering angle \(\theta\) is well-approximated by a Gaussian distribution, which produces the \(\sigma\) and FWHM presented in the results of the calculation. 
 </p>
 
 <p>
 The model depends on the following parameters: 
 $$\begin{align}
 E & \text{ - kinetic energy of incident particle in MeV} \\
-Mc^2 & \text{ - rest energy of incident particle in MeV} \\
+M & \text{ - rest energy of incident particle in MeV} \\
 z & \text{ - atomic number of incident particle} \\
 Z & \text{ - atomic number of target}\\
 A & \text{ - nucleon number of target} \\
@@ -39,7 +42,7 @@ b &= \log\left( 2730\left[ \frac{(Z+1)Z^{1/3}z^2 t}{A\beta^2}  \right] \right) -
 \Gamma &= \sqrt{B} \exp\left( \frac{B-1.5}{2.2} \right) \\
 \end{align} $$
 
-where \(\beta = v/c\), \( (pv)^2=(E^2 +2EMc^2)\beta^2 \), and \( \beta^2 = 1-(1+E/Mc^2)^{-2}\) are familiar results from special relativity, and \(B\) is a solution of 
+where \(\beta = v/c\), \( (pv)^2=(E^2 +2EM)\beta^2 \), and \( \beta^2 = 1-(1+E/M)^{-2}\) are familiar results from special relativity, and \(B\) is a solution of 
 
 $$ B- \log{B} = b. $$
 
@@ -56,8 +59,56 @@ F_2(x) & = \frac{1}{16} \int_0^\Gamma u^5 J_0(ux) \log\left(\frac{u^2}{4}\right)
 \end{align} $$
 
 \(J_0\) denotes the Bessel function \(J_0(x) = \frac{1}{\pi} \int_0^\pi \cos(-x\sin{\tau}) d\tau.\) 
+
+Then, its a simple matter to extract the FWHM of this distribution. 
 </p>
 
+
+<br>
+
+<h4>Sigmund and Winterbon & Anne et al.</h4>
+
+<p>
+The model is based off of fits to data in two papers: Sigmund and Winterbon's "Small-angle Multiple Scattering of Ions in the Screened Coulomb Region" in NIM 119 (1974) and Anne et al.'s "Multiple Scattering of Heavy Ions ... at Intermediate Energies" in NIM B34 (1988). Anne et al.'s work is broadly an extension of Sigmund and Winterbon's work and provides more data that extends the domain in which the model applies. While both works are grounded in fits to specific sets of data, they claim to present a "universal relation" that agrees well with theoretical calculations.   
+</p>
+
+<p>
+This model depends on the following parameters: 
+$$\begin{align}
+E & \text{ - kinetic energy of incident particle in MeV} \\
+M & \text{ - rest mass of target particle} \\
+z & \text{ - atomic number of incident particle} \\
+Z & \text{ - atomic number of target}\\
+t & \text{ - thickness of target in } g/cm^2
+\end{align} $$
+
+We then define the values 
+$$ \begin{align}
+a & = \frac{0.885 \times 0.529 \times 10^{-8}}{\sqrt{z^{2/3}+Z^{2/3}}} \\
+Nt & = \frac{t}{M} \\
+\tau & = \pi \times Nt \times a^2. 
+\end{align} $$ 
+
+\( a \) is a screening parameter, \( Nt \) is a measure of the number of scattering centers per unit area of the target, and \( \tau \) is a reduced thickness parameter. 
+
+Then, the model simply depends on \( \tau \) to yield the half-width of the angular distribution 
+$$ \alpha_{1/2} = C_m \tau ^{1/(2m)}. $$
+
+\( C_m \) and \( m \) are fitted values that are determined by the domain \(\tau \) is in:
+$$ \begin{align}
+\tau < 0.1 & \rightarrow C_m = 1.05, \; m = 0.311 \; \text{(Thomas-Fermi screening)} \\
+\tau < 0.1 & \rightarrow C_m = 3.45, \; m = 0.191 \; \text{(Lenz-Jensen screening)} \\ 
+1 < \tau < 5 & \rightarrow C_m = 0.25, \; m = 0.500 \\
+40 < \tau < 500 & \rightarrow C_m = 0.92, \; m=0.560 \\
+1000 < \tau & \rightarrow C_m = 1.00, \; m = 0.550.
+\end{align} $$
+
+If \( \tau \) is in between one of the domains listed, the value is determined by a simple log10 weighting: for example, if \( 5<\tau<40 \), we take \(x = \log_{10} \tau \) and get the weighted \(\alpha_{1/2} \) value as 
+$$ 
+\alpha_{1/2} = \frac{(\log_{10}(40)-x)0.25\tau^{1/(2*0.500)}+(x-\log_{10}(5))0.92\tau^{1/(2*0.560)}}{\log_{10}(40) - \log_{10}(5)}
+$$ 
+ 
+</p>
 
 {% endblock %}
 

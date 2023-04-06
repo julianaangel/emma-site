@@ -9,7 +9,8 @@ from matplotlib.pyplot import figure
 import scipy.stats as stats
 
 
-class model_parameters: 
+class model_parameters:
+# variables and helper functions for the quantum derivation from Marion and Zimmerman 
 
     def __init__(self, E, Mc2, z, Z, A, t):
         self.E = E #incident energy (MeV)
@@ -85,8 +86,115 @@ class model_parameters:
         return gamma 
     
     
+class model_parameters_classical:
+# parameters and helper functions for classical derivation, from Sigmund and Winterbon
+
+    def __init__(self, E, z, Z, Mc2t, t):
+        self.z = z # incident particle z
+        self.Z = Z # target z
+        self.Mc2t = Mc2t  # target particle rest mass (in g) - this is technically used to calculate
+                                # the number of scattering centers (nuclei) per unit volume
+        self.t = t  # target areal density  (in g/cm^2)
+        self.E = E  #incident particle energy in MeV
+
+        self.a_ = self.a()
+        self.Nt_ = self.Nt()
+        self.tau_ = self.tau()
+        self.alpha_1_tf_ = self.alpha(self.alpha_tilde_1_tf())
+        self.alpha_1_lj_ = self.alpha(self.alpha_tilde_1_lj())
+        self.alpha_2_ = self.alpha(self.alpha_tilde_2())
+        self.alpha_3_ = self.alpha(self.alpha_tilde_3())
+        self.alpha_4_ = self.alpha(self.alpha_tilde_4())
+        self.weighted_alpha_ = self.weighted_alpha()
+
+    def a(self):
+        a = (0.885*0.529e-8)/(self.z**(2/3)+self.Z**(2/3))**0.5
+        return a
+
+    def Nt(self):
+        Nt = self.t/self.Mc2t
+        return Nt
+
+    def tau(self): 
+        tau = np.pi*self.Nt()*self.a()**2
+        return tau
+
+    # different alpha_tilde functions for different tau domains ------------------#
+    def alpha_tilde_1_tf(self): #thomas-fermi screening for tau < 0.1
+        Cm = 1.05
+        m = 0.311
+        alpha_tilde = Cm*self.tau_**(1/(2*m))
+        return alpha_tilde
+
+    def alpha_tilde_1_lj(self): #lenz-jensen screening for tau < 0.1
+        Cm = 3.45
+        m = 0.191
+        alpha_tilde = Cm*self.tau_**(1/(2*m))
+        return alpha_tilde
+    
+    def alpha_tilde_2(self): #for 1 < tau < 5
+        Cm = 0.25
+        m = 0.5
+        alpha_tilde = Cm*self.tau_**(1/(2*m))
+        return alpha_tilde
+    
+    def alpha_tilde_3(self): # for 40 < tau < 500
+        Cm = 0.92
+        m = 0.56
+        alpha_tilde = Cm*self.tau_**(m)
+        return alpha_tilde
+    
+    def alpha_tilde_4(self): # for tau > 1000
+        Cm = 1.00
+        m = 0.55
+        alpha_tilde = Cm*self.tau_**(m)
+        return alpha_tilde
+    #-----------------------------------------------------------------------------#
+
+    def alpha(self, alpha_tilde):
+        a = self.a()*1e13  #convert a (units of cm) to units of fm
+        alpha = alpha_tilde*(2*self.z*self.Z*1.4399764)/(self.E*a) # elementary charge e^2 is equal to 1.4399764 MeV*fm
+        return alpha
+    
+    def weighted_alpha(self):
+        tau = self.tau_
+        x = np.log10(self.tau_)
+        if tau <= 0.1: 
+            w_alpha_tf = self.alpha_1_tf_
+            w_alpha_lj = self.alpha_1_lj_
+            return w_alpha_tf, w_alpha_lj
+        elif tau > 0.1 and tau <= 1:
+            w_alpha_tf = (np.log10(1)-x)*self.alpha_1_tf_+(x-np.log10(0.1))*self.alpha_2_
+            w_alpha_lj = (np.log10(1)-x)*self.alpha_1_lj_+(x-np.log10(0.1))*self.alpha_2_
+            return w_alpha_tf, w_alpha_lj
+        elif tau > 1 and tau <= 5: 
+            w_alpha = self.alpha_2_
+            return w_alpha, 0.0
+        elif tau > 5 and tau <= 40: 
+            d = np.log10(40) - np.log10(5)
+            w_alpha = (np.log10(40)-x)*self.alpha_2_+(x-np.log10(5))*self.alpha_3_
+            w_alpha = w_alpha/d
+            return w_alpha, 0.0 
+        elif tau > 40 and tau <= 500:
+            w_alpha = self.alpha_3_
+            return w_alpha, 0.0
+        elif tau > 500 and tau <=1000: 
+            d = np.log10(1000) - np.log10(500)
+            w_alpha = (np.log10(1000)-x)*self.alpha_3_+(x-np.log10(500))*self.alpha_4_
+            w_alpha = w_alpha/d
+            return w_alpha, 0.0 
+        elif tau > 1000: 
+            w_alpha = self.alpha_4_ 
+            return w_alpha, 0.0
+        
+    
+    def ratio(self):
+        a = self.a()*1e13
+        r = (self.E*a)/(2*self.z*self.Z*1.4399764)
+        return r
+    
 #------------#------------#------------#------------#------------#------------#------------#
-# Integration Functions
+# Integration Functions for quantum method
 #------------#------------#------------#------------#------------#------------#------------#
     
 
@@ -122,9 +230,15 @@ def F(x, xc, B, gamma):
     
 
 # this will be called in the view function. The code in there will handle the rest
-def set_parameters(E, Mc2, z, Z, A, t):
+def set_parameters_marion(E, Mc2, z, Z, A, t):
     
     params = model_parameters(E, Mc2, z, Z, A, t)
+    
+    return params
+
+def set_parameters_sigmund(E, z, Z, Mc2t, t):
+  
+    params = model_parameters_classical(E,z,Z,Mc2t,t)
     
     return params
 

@@ -14,6 +14,22 @@
 
 
 
+{% extends{ "g4emma/base.html" %}
+
+<!-- Title -->
+{% block title %}{{ block.super }} - Multiple Scattering{% endblock %}
+
+<!-- Navigation -->
+{% block nav_tools_class %}nav-pill-active{% endblock %}
+{% block nav_drpbtn_class %}dropbtn-active{% endblock %}
+{% block nav_multiscatt_url %}#{% endblock %}
+
+<!-- Main Content -->
+
+{% block main_content %}
+
+
+
 
 	<h2 id="submit_msg">Multiple Scattering Calculation</h2>
 	<br>

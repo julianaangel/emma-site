@@ -230,15 +230,15 @@ def rigidity(request):
 
 def transmission_efficiency_view(request):
     if request.method =='POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-           file1 = request.FILES['file1']
-           file2 = request.FILES['file2']
+	form = UploadFileForm(request.POST, request.FILES)
+	if form.is_valid():
+	   file1 = request.FILES['file1']
+	   file2 = request.FILES['file2']
 
-           results = transmission_efficiency_func(file1,file2)
-           return render(request, 'g4emma/tools/transmission_efficiency.html', {'results': results})
+	   results = transmission_efficiency_func(file1,file2)
+	   return render(request, 'g4emma/tools/transmission_efficiency.html', {'results': results})
     else:
-        form = UploadFileForm()
+	form = UploadFileForm()
     return render(request, 'g4emma/tools/transmission_efficiency.html', {'form': form})
 
 def multiple_scattering_info(request):

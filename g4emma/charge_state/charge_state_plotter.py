@@ -22,7 +22,10 @@ def plot_with_errors(qs, sigmas, q_uncert, comment, zb):#, i_color=0):
     #Place to build our "error range"
     lower, upper = [], []
 
-    x = np.arange(0, zb, 0.01)
+#    x = np.arange(0, zb, 0.01)
+### 220831 K.Pak modified ###
+    x = np.arange(0, zb+0.01, 0.01)
+### END ###
     for i in x:
         minus, plus = gauss(i, q_lo, sigma_lo), gauss(i, q_hi, sigma_hi)
         if minus < plus:
@@ -110,7 +113,8 @@ def generate_charge_state_plots(ab, zb, zt, eb):
     plt.ylabel('Charge State Fraction',fontsize=20)
     plt.ylim(-0.05, 0.6)
 
-    plt.suptitle(str(round(eb,3))+' MeV/u, ' + nr.elements[Z_beam] + '-' + str(A_beam), fontsize=24)
+    # plt.suptitle(str(round(eb,3))+' MeV/u, ' + nr.elements[Z_beam] + '-' + str(A_beam), fontsize=24)
+    plt.suptitle(str(round(eb,3))+' MeV/nucleon, ' + nr.elements[Z_beam] + '-' + str(A_beam), fontsize=24)    
     plt.close(FIG)
     return FIG, qs_ND, sigmas_ND, qs_Shima, sigmas_Shima, qs_Schiw, sigmas_Schiw, x_data, y_data_ND, y_data_Shima, y_data_Schiw 
 

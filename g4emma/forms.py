@@ -345,6 +345,7 @@ class MultipleScatteringForm(forms.Form):
     ms_rest_mass = forms.DecimalField(required=True, label="M", help_text="amu (Incident rest mass) *required", validators=[MinValueValidator(0)])
     ms_incident_proton_num = forms.IntegerField(required=True, label="z", help_text=" (Incident atomic number) *required",validators=[MinValueValidator(1)])
     ms_target_proton_num = forms.IntegerField(required=True, label="Z", help_text=" (Target atomic number) *required",validators=[MinValueValidator(1)])
+    ms_target_rest_mass = forms.DecimalField(required=True, label="Mt", help_text="amu (Target rest mass) *required", validators=[MinValueValidator(1)])
     ms_target_nucleon_num = forms.IntegerField(required=True, label="A", help_text=" (Target nucleon number) *required",validators=[MinValueValidator(1)])
     ms_target_density = forms.DecimalField(required=True, label="t", help_text = "μg/cm**2 (Target areal density) *required", validators=[MinValueValidator(0)])
 
